@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
 using System.Linq;
 using System.Windows.Forms;
 using DOANNHOM.data;
@@ -10,251 +8,29 @@ namespace DOANNHOM
 {
     public partial class frmSach : Form
     {
-        private QuanLyThuVien db;
-        private List<Sach> danhSachGoc;
+        private QuanLyThuVien db = new QuanLyThuVien();
         private Sach selectedSach;
+        private string currentAction = "";
 
         public frmSach()
         {
             InitializeComponent();
-            db = new QuanLyThuVien();
-        }
-
-        private void btnThem_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                var newSach = new Sach
-                {
-                    MaSach = txtMaSach1.Text.Trim(),
-                    TenSach = txtTenSach1.Text.Trim(),
-                    MaTacGia = txtMaTacGia1.Text.Trim(),
-                    MaXB = txtMaNXB1.Text.Trim(),
-                    MaLoai = txtMaLoai.Text.Trim(),
-                    SoTrang = int.Parse(txtSoTrang.Text),
-                    GiaBan = int.Parse(txtGiaBan.Text),
-                    SoLuong = int.Parse(txtSoLuong.Text)
-                };
-
-                if (db.Sach.Any(s => s.MaSach == newSach.MaSach))
-                {
-                    MessageBox.Show("Mã sách đã tồn tại!");
-                    return;
-                }
-
-                db.Sach.Add(newSach);
-                db.SaveChanges();
-
-                MessageBox.Show("Thêm sách thành công!");
-                LoadData();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi thêm sách: " + ex.Message);
-            }
-        }
-
-        private void btnSua_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                if (selectedSach == null)
-                {
-                    MessageBox.Show("Vui lòng chọn sách cần sửa!");
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(txtTenSach1.Text) ||
-                    string.IsNullOrWhiteSpace(txtMaTacGia1.Text))
-                {
-                    MessageBox.Show("Vui lòng nhập đầy đủ thông tin!", "Thông báo");
-                    return;
-                }
-
-                if (!db.TacGia.Any(tg => tg.MaTacGia == txtMaTacGia1.Text.Trim()))
-                {
-                    MessageBox.Show("Mã tác giả không tồn tại!", "Lỗi");
-                    return;
-                }
-
-                if (!db.NhaXuatBan.Any(nxb => nxb.MaXB == txtMaNXB1.Text.Trim()))
-                {
-                    MessageBox.Show("Mã nhà xuất bản không tồn tại!", "Lỗi");
-                    return;
-                }
-
-                if (!db.LoaiSach.Any(ls => ls.MaLoai == txtMaLoai.Text.Trim()))
-                {
-                    MessageBox.Show("Mã loại sách không tồn tại!", "Lỗi");
-                    return;
-                }
-
-                var sachCanSua = db.Sach.Find(selectedSach.MaSach);
-
-                if (sachCanSua == null)
-                {
-                    MessageBox.Show("Không tìm thấy sách cần sửa!");
-                    return;
-                }
-
-                sachCanSua.TenSach = txtTenSach1.Text.Trim();
-                sachCanSua.MaTacGia = txtMaTacGia1.Text.Trim();
-                sachCanSua.MaXB = txtMaNXB1.Text.Trim();
-                sachCanSua.MaLoai = txtMaLoai.Text.Trim();
-
-                if (!int.TryParse(txtSoTrang.Text, out int soTrang) || soTrang <= 0)
-                {
-                    MessageBox.Show("Số trang phải là số nguyên dương!", "Lỗi");
-                    return;
-                }
-                sachCanSua.SoTrang = soTrang;
-
-                if (!int.TryParse(txtGiaBan.Text, out int giaBan) || giaBan < 0)
-                {
-                    MessageBox.Show("Giá bán phải là số không âm!", "Lỗi");
-                    return;
-                }
-                sachCanSua.GiaBan = giaBan;
-
-                if (!int.TryParse(txtSoLuong.Text, out int soLuong) || soLuong < 0)
-                {
-                    MessageBox.Show("Số lượng phải là số không âm!", "Lỗi");
-                    return;
-                }
-                sachCanSua.SoLuong = soLuong;
-
-                db.SaveChanges();
-                MessageBox.Show("Cập nhật sách thành công!");
-                LoadData();
-                ClearInputs();
-            }
-            catch (System.Data.Entity.Validation.DbEntityValidationException ex)
-            {
-                string errors = "Lỗi validation:\n";
-                foreach (var validationErrors in ex.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        errors += $"- {validationError.PropertyName}: {validationError.ErrorMessage}\n";
-                    }
-                }
-                MessageBox.Show(errors, "Lỗi");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi sửa sách: " + ex.Message + "\n\n" +
-                               (ex.InnerException != null ? ex.InnerException.Message : ""), "Lỗi");
-            }
-        }
-
-        private void btnXoa_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                if (selectedSach == null)
-                {
-                    MessageBox.Show("Vui lòng chọn sách cần xóa!");
-                    return;
-                }
-
-                if (MessageBox.Show("Bạn có chắc muốn xóa sách này không?", "Xác nhận",
-                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                {
-                    db.Sach.Remove(selectedSach);
-                    db.SaveChanges();
-                    MessageBox.Show("Xóa thành công!");
-                    LoadData();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi xóa sách: " + ex.Message);
-            }
-        }
-
-        private void btnTroVe_Click(object sender, EventArgs e)
-        {
-            frmQuanLySach frm = new frmQuanLySach();
-            frm.Show();
-            Hide();
-        }
-
-        private void txtTK_TextChanged(object sender, EventArgs e)
-        {
-            TimKiem();
         }
 
         private void frmSach_Load(object sender, EventArgs e)
         {
             LoadData();
-            rbTenSach.Checked = true;
+            dgvSach.CellClick += dgvSach_CellClick;
             txtTK.TextChanged += txtTK_TextChanged;
+
+            SetInputEnabled(false);
+            btnLuu.Enabled = false;
         }
 
+        // ===== LOAD DỮ LIỆU =====
         private void LoadData()
         {
-            try
-            {
-                danhSachGoc = db.Sach.Include(s => s.LoaiSach)
-                                     .Include(s => s.TacGia)
-                                     .Include(s => s.NhaXuatBan)
-                                     .ToList();
-
-                dgvSach.DataSource = danhSachGoc
-                    .Select(s => new
-                    {
-                        s.MaSach,
-                        s.TenSach,
-                        s.MaTacGia,
-                        s.MaXB,
-                        s.MaLoai,
-                        s.SoTrang,
-                        s.GiaBan,
-                        s.SoLuong
-                    }).ToList();
-
-                dgvSach.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-                dgvSach.AllowUserToAddRows = false;
-                dgvSach.ReadOnly = true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
-            }
-        }
-        private void TimKiem()
-        {
-            if (danhSachGoc == null) return;
-
-            string keyword = txtTK.Text.Trim().ToLower();
-            List<Sach> ketQua;
-
-            if (string.IsNullOrWhiteSpace(keyword))
-            {
-                ketQua = danhSachGoc;
-            }
-            else if (rbMaSach.Checked)
-            {
-                ketQua = danhSachGoc.Where(s => s.MaSach.ToLower().Contains(keyword)).ToList();
-            }
-            else if (rbTenSach.Checked)
-            {
-                ketQua = danhSachGoc.Where(s => s.TenSach.ToLower().Contains(keyword)).ToList();
-            }
-            else if (rbMaTG.Checked)
-            {
-                ketQua = danhSachGoc.Where(s => s.MaTacGia.ToLower().Contains(keyword)).ToList();
-            }
-            else if (rbMaNXB.Checked)
-            {
-                ketQua = danhSachGoc.Where(s => s.MaXB.ToLower().Contains(keyword)).ToList();
-            }
-            else
-            {
-                ketQua = danhSachGoc;
-            }
-
-            dgvSach.DataSource = ketQua
+            var data = db.Sach
                 .Select(s => new
                 {
                     s.MaSach,
@@ -265,20 +41,60 @@ namespace DOANNHOM
                     s.SoTrang,
                     s.GiaBan,
                     s.SoLuong
-                }).ToList();
+                })
+                .ToList();
+
+            dgvSach.DataSource = data;
+
+            dgvSach.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvSach.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvSach.MultiSelect = false;
+            dgvSach.ReadOnly = true;
+
+            ClearInputs();
         }
 
-        private void frmSach_Click(object sender, EventArgs e)
+        // ===== BẬT / TẮT Ô NHẬP =====
+        private void SetInputEnabled(bool enabled)
         {
-
+            txtMaSach1.Enabled = enabled;
+            txtTenSach1.Enabled = enabled;
+            txtMaTacGia1.Enabled = enabled;
+            txtMaNXB1.Enabled = enabled;
+            txtMaLoai.Enabled = enabled;
+            txtSoTrang.Enabled = enabled;
+            txtGiaBan.Enabled = enabled;
+            txtSoLuong.Enabled = enabled;
         }
 
+        // ===== BẬT / TẮT CÁC NÚT CHỨC NĂNG =====
+        private void SetButtonsEnabled(bool enabled)
+        {
+            btnThem.Enabled = enabled;
+            btnSua.Enabled = enabled;
+            btnXoa.Enabled = enabled;
+        }
+
+        // ===== XÓA TRẮNG Ô NHẬP =====
+        private void ClearInputs()
+        {
+            txtMaSach1.Clear();
+            txtTenSach1.Clear();
+            txtMaTacGia1.Clear();
+            txtMaNXB1.Clear();
+            txtMaLoai.Clear();
+            txtSoTrang.Clear();
+            txtGiaBan.Clear();
+            txtSoLuong.Clear();
+        }
+
+        // ===== CLICK DÒNG TRONG DATAGRID =====
         private void dgvSach_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
             {
-                string maSach = dgvSach.Rows[e.RowIndex].Cells["MaSach"].Value.ToString();
-                selectedSach = db.Sach.FirstOrDefault(s => s.MaSach == maSach);
+                string ma = dgvSach.Rows[e.RowIndex].Cells["MaSach"].Value.ToString();
+                selectedSach = db.Sach.FirstOrDefault(x => x.MaSach == ma);
 
                 if (selectedSach != null)
                 {
@@ -294,18 +110,344 @@ namespace DOANNHOM
             }
         }
 
-        private void ClearInputs()
+        // ===== TÌM KIẾM REALTIME =====
+        private void txtTK_TextChanged(object sender, EventArgs e)
         {
-            txtMaSach1.Clear();
-            txtTenSach1.Clear();
-            txtMaTacGia1.Clear();
-            txtMaNXB1.Clear();
-            txtMaLoai.Clear();
-            txtSoTrang.Clear();
-            txtGiaBan.Clear();
-            txtSoLuong.Clear();
-            selectedSach = null;
+            string keyword = txtTK.Text.Trim().ToLower();
+            var result = db.Sach
+                .Where(s =>
+                    s.MaSach.ToLower().Contains(keyword) ||
+                    s.TenSach.ToLower().Contains(keyword) ||
+                    s.MaTacGia.ToLower().Contains(keyword) ||
+                    s.MaXB.ToLower().Contains(keyword) ||
+                    s.MaLoai.ToLower().Contains(keyword))
+                .Select(s => new
+                {
+                    s.MaSach,
+                    s.TenSach,
+                    s.MaTacGia,
+                    s.MaXB,
+                    s.MaLoai,
+                    s.SoTrang,
+                    s.GiaBan,
+                    s.SoLuong
+                })
+                .ToList();
+
+            dgvSach.DataSource = result;
         }
 
+        // ===== NÚT TRỞ VỀ =====
+        private void btnTroVe_Click(object sender, EventArgs e)
+        {
+            frmQuanLySach frm = new frmQuanLySach();
+            frm.Show();
+            Hide();
+        }
+
+        // ===== NÚT THÊM =====
+        private void btnThem_Click(object sender, EventArgs e)
+        {
+            ClearInputs();
+            SetInputEnabled(true);
+            txtMaSach1.Enabled = true;
+
+            currentAction = "add";
+            btnLuu.Enabled = true;
+
+            // VÔ HIỆU HÓA CÁC NÚT KHÁC
+            SetButtonsEnabled(false);
+        }
+
+        // ===== NÚT SỬA =====
+        private void btnSua_Click(object sender, EventArgs e)
+        {
+            if (selectedSach == null)
+            {
+                MessageBox.Show("Vui lòng chọn sách cần sửa!", "Thông báo");
+                return;
+            }
+
+            SetInputEnabled(true);
+            txtMaSach1.Enabled = false;
+            currentAction = "edit";
+            btnLuu.Enabled = true;
+
+            // VÔ HIỆU HÓA CÁC NÚT KHÁC
+            SetButtonsEnabled(false);
+        }
+
+        // ===== NÚT XÓA =====
+        private void btnXoa_Click(object sender, EventArgs e)
+        {
+            if (selectedSach == null)
+            {
+                MessageBox.Show("Vui lòng chọn sách cần xóa!", "Thông báo");
+                return;
+            }
+
+            SetInputEnabled(false);
+            currentAction = "delete";
+            btnLuu.Enabled = true;
+
+            // VÔ HIỆU HÓA CÁC NÚT KHÁC
+            SetButtonsEnabled(false);
+        }
+       
+
+        private void btnLuu_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (currentAction == "add")
+                {
+                    // KIỂM TRA CÁC TRƯỜNG BẮT BUỘC
+                    if (string.IsNullOrWhiteSpace(txtMaSach1.Text))
+                    {
+                        MessageBox.Show("Vui lòng nhập mã sách!", "Thông báo");
+                        txtMaSach1.Focus();
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(txtTenSach1.Text))
+                    {
+                        MessageBox.Show("Vui lòng nhập tên sách!", "Thông báo");
+                        txtTenSach1.Focus();
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(txtMaTacGia1.Text))
+                    {
+                        MessageBox.Show("Vui lòng nhập mã tác giả!", "Thông báo");
+                        txtMaTacGia1.Focus();
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(txtMaNXB1.Text))
+                    {
+                        MessageBox.Show("Vui lòng nhập mã nhà xuất bản!", "Thông báo");
+                        txtMaNXB1.Focus();
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(txtMaLoai.Text))
+                    {
+                        MessageBox.Show("Vui lòng nhập mã loại sách!", "Thông báo");
+                        txtMaLoai.Focus();
+                        return;
+                    }
+
+                    // Kiểm tra mã sách đã tồn tại chưa
+                    if (db.Sach.Any(x => x.MaSach == txtMaSach1.Text.Trim()))
+                    {
+                        MessageBox.Show("Mã sách đã tồn tại!", "Cảnh báo");
+                        txtMaSach1.Focus();
+                        return;
+                    }
+
+                    // TỰ ĐỘNG TẠO TÁC GIẢ NẾU CHƯA CÓ
+                    string maTacGia = txtMaTacGia1.Text.Trim();
+                    var tacGia = db.TacGia.Find(maTacGia);
+                    if (tacGia == null)
+                    {
+                        var newTacGia = new TacGia
+                        {
+                            MaTacGia = maTacGia,
+                            TacGia1 = maTacGia,
+                            GhiChu = "Tự động tạo"
+                        };
+                        db.TacGia.Add(newTacGia);
+                        db.SaveChanges();
+                    }
+
+                    // TỰ ĐỘNG TẠO NHÀ XUẤT BẢN NẾU CHƯA CÓ
+                    string maNXB = txtMaNXB1.Text.Trim();
+                    var nxb = db.NhaXuatBan.Find(maNXB);
+                    if (nxb == null)
+                    {
+                        var newNXB = new NhaXuatBan
+                        {
+                            MaXB = maNXB,
+                            NhaXuatBan1 = maNXB,
+                        };
+                        db.NhaXuatBan.Add(newNXB);
+                        db.SaveChanges();
+                    }
+
+                    // TỰ ĐỘNG TẠO LOẠI SÁCH NẾU CHƯA CÓ
+                    string maLoai = txtMaLoai.Text.Trim();
+                    var loai = db.LoaiSach.Find(maLoai);
+                    if (loai == null)
+                    {
+                        var newLoai = new LoaiSach
+                        {
+                            MaLoai = maLoai,
+                            TenLoaiSach = maLoai,
+                            GhiChu = "Tự động tạo"
+                        };
+                        db.LoaiSach.Add(newLoai);
+                        db.SaveChanges();
+                    }
+
+                    // Chuyển đổi số
+                    int.TryParse(txtSoTrang.Text, out int soTrang);
+                    int.TryParse(txtGiaBan.Text, out int giaBan);
+                    int.TryParse(txtSoLuong.Text, out int soLuong);
+
+                    // Tạo sách mới
+                    var newSach = new Sach
+                    {
+                        MaSach = txtMaSach1.Text.Trim(),
+                        TenSach = txtTenSach1.Text.Trim(),
+                        MaTacGia = maTacGia,
+                        MaXB = maNXB,
+                        MaLoai = maLoai,
+                        SoTrang = soTrang,
+                        GiaBan = giaBan,
+                        SoLuong = soLuong
+                    };
+
+                    db.Sach.Add(newSach);
+                    db.SaveChanges();
+                    MessageBox.Show("Thêm sách thành công!", "Thành công");
+                }
+                else if (currentAction == "edit")
+                {
+                    if (selectedSach == null)
+                    {
+                        MessageBox.Show("Vui lòng chọn sách để sửa!", "Thông báo");
+                        return;
+                    }
+
+                    // Kiểm tra các trường bắt buộc
+                    if (string.IsNullOrWhiteSpace(txtTenSach1.Text))
+                    {
+                        MessageBox.Show("Vui lòng nhập tên sách!", "Thông báo");
+                        txtTenSach1.Focus();
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(txtMaTacGia1.Text))
+                    {
+                        MessageBox.Show("Vui lòng nhập mã tác giả!", "Thông báo");
+                        txtMaTacGia1.Focus();
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(txtMaNXB1.Text))
+                    {
+                        MessageBox.Show("Vui lòng nhập mã nhà xuất bản!", "Thông báo");
+                        txtMaNXB1.Focus();
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(txtMaLoai.Text))
+                    {
+                        MessageBox.Show("Vui lòng nhập mã loại sách!", "Thông báo");
+                        txtMaLoai.Focus();
+                        return;
+                    }
+
+                    // TỰ ĐỘNG TẠO TÁC GIẢ NẾU CHƯA CÓ (khi sửa)
+                    string maTacGia = txtMaTacGia1.Text.Trim();
+                    var tacGia = db.TacGia.Find(maTacGia);
+                    if (tacGia == null)
+                    {
+                        var newTacGia = new TacGia
+                        {
+                            MaTacGia = maTacGia,
+                            TacGia1 = maTacGia,
+                            GhiChu = "Tự động tạo"
+                        };
+                        db.TacGia.Add(newTacGia);
+                        db.SaveChanges();
+                    }
+
+                    // TỰ ĐỘNG TẠO NXB NẾU CHƯA CÓ (khi sửa)
+                    string maNXB = txtMaNXB1.Text.Trim();
+                    var nxb = db.NhaXuatBan.Find(maNXB);
+                    if (nxb == null)
+                    {
+                        var newNXB = new NhaXuatBan
+                        {
+                            MaXB = maNXB,
+                            NhaXuatBan1 = maNXB,
+                        };
+                        db.NhaXuatBan.Add(newNXB);
+                        db.SaveChanges();
+                    }
+
+                    // TỰ ĐỘNG TẠO LOẠI SÁCH NẾU CHƯA CÓ (khi sửa)
+                    string maLoai = txtMaLoai.Text.Trim();
+                    var loai = db.LoaiSach.Find(maLoai);
+                    if (loai == null)
+                    {
+                        var newLoai = new LoaiSach
+                        {
+                            MaLoai = maLoai,
+                            TenLoaiSach = maLoai,
+                            GhiChu = "Tự động tạo"
+                        };
+                        db.LoaiSach.Add(newLoai);
+                        db.SaveChanges();
+                    }
+
+                    int.TryParse(txtSoTrang.Text, out int soTrang);
+                    int.TryParse(txtGiaBan.Text, out int giaBan);
+                    int.TryParse(txtSoLuong.Text, out int soLuong);
+
+                    // Cập nhật thông tin
+                    selectedSach.TenSach = txtTenSach1.Text.Trim();
+                    selectedSach.MaTacGia = maTacGia;
+                    selectedSach.MaXB = maNXB;
+                    selectedSach.MaLoai = maLoai;
+                    selectedSach.SoTrang = soTrang;
+                    selectedSach.GiaBan = giaBan;
+                    selectedSach.SoLuong = soLuong;
+
+                    db.SaveChanges();
+                    MessageBox.Show("Cập nhật sách thành công!", "Thông báo");
+                }
+                else if (currentAction == "delete")
+                {
+                    if (selectedSach == null)
+                    {
+                        MessageBox.Show("Vui lòng chọn sách cần xóa!", "Thông báo");
+                        return;
+                    }
+
+                    if (MessageBox.Show("Bạn có chắc muốn xóa sách này?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    {
+                        db.Sach.Remove(selectedSach);
+                        db.SaveChanges();
+                        MessageBox.Show("Xóa sách thành công!", "Thông báo");
+                    }
+                    else
+                    {
+                        // User chọn No - hủy thao tác và BẬT LẠI CÁC NÚT
+                        currentAction = "";
+                        SetInputEnabled(false);
+                        btnLuu.Enabled = false;
+                        SetButtonsEnabled(true); // ← BẬT LẠI CÁC NÚT
+                        return;
+                    }
+                }
+
+                // Reset trạng thái sau khi lưu thành công
+                currentAction = "";
+                SetInputEnabled(false);
+                ClearInputs();
+                LoadData();
+                btnLuu.Enabled = false;
+                selectedSach = null;
+
+                // BẬT LẠI CÁC NÚT THÊM/SỬA/XÓA
+                SetButtonsEnabled(true);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi: " + (ex.InnerException?.Message ?? ex.Message), "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
     }
 }

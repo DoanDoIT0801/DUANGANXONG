@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
@@ -12,163 +11,79 @@ namespace DOANNHOM
     {
         private QuanLyThuVien db = new QuanLyThuVien();
         private TacGia selectedTacGia;
-        private List<TacGia> danhSachGoc;
+        private string currentAction = ""; // "add", "edit", "delete"
 
         public frmTacGia()
         {
             InitializeComponent();
-            this.Load += frmTacGia_Load;
         }
 
         private void frmTacGia_Load(object sender, EventArgs e)
         {
             LoadData();
 
+            // Sự kiện
             dgvTG.CellClick += dgvTG_CellClick;
             txtTimKiem.TextChanged += txtTimKiem_TextChanged;
+
+            SetEditingMode(false); // Ban đầu khóa nhập
+            btnLuu.Enabled = false;
         }
 
-        // ===== LOAD DỮ LIỆU =====
+        // ====== LOAD DỮ LIỆU ======
         private void LoadData()
         {
-            try
-            {
-                dgvTG.AutoGenerateColumns = true;
+            var data = db.TacGia
+                         .Select(tg => new
+                         {
+                             tg.MaTacGia,
+                             TenTacGia = tg.TacGia1,
+                             tg.GhiChu
+                         })
+                         .ToList();
 
-                danhSachGoc = db.TacGia.ToList();
+            dgvTG.DataSource = data;
+            dgvTG.Columns["MaTacGia"].HeaderText = "Mã Tác Giả";
+            dgvTG.Columns["TenTacGia"].HeaderText = "Tên Tác Giả";
+            dgvTG.Columns["GhiChu"].HeaderText = "Ghi Chú";
 
-                dgvTG.DataSource = danhSachGoc
-                    .Select(t => new
-                    {
-                        t.MaTacGia,
-                        t.TacGia1,
-                        t.GhiChu
-                    }).ToList();
+            dgvTG.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvTG.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvTG.MultiSelect = false;
 
-                dgvTG.Columns["MaTacGia"].HeaderText = "Mã Tác Giả";
-                dgvTG.Columns["TacGia1"].HeaderText = "Tên Tác Giả";
-                dgvTG.Columns["GhiChu"].HeaderText = "Ghi Chú";
-
-                dgvTG.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-                dgvTG.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-                dgvTG.AllowUserToAddRows = false;
-                dgvTG.ReadOnly = true;
-
-                dgvTG.ClearSelection();
-                ClearTextBoxes();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message, "Lỗi");
-            }
+            ClearTextBoxes();
         }
 
-        // ===== XÓA TRẮNG Ô NHẬP =====
+        // ====== HÀM DỌN Ô NHẬP ======
         private void ClearTextBoxes()
         {
             txtMaTG.Clear();
             txtTenTG.Clear();
             txtGhiChu.Clear();
-            selectedTacGia = null;
             txtMaTG.Enabled = true;
-            txtMaTG.Focus();
+            selectedTacGia = null;
         }
 
-        // ===== THÊM =====
-        private void btnThem_Click(object sender, EventArgs e)
+        // ====== KHÓA / MỞ Ô NHẬP ======
+        private void SetEditingMode(bool enabled)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(txtMaTG.Text) ||
-                    string.IsNullOrWhiteSpace(txtTenTG.Text))
-                {
-                    MessageBox.Show("Vui lòng nhập đầy đủ Mã và Tên tác giả!", "Thông báo");
-                    return;
-                }
-
-                string ma = txtMaTG.Text.Trim();
-
-                if (db.TacGia.Any(t => t.MaTacGia == ma))
-                {
-                    MessageBox.Show("Mã tác giả đã tồn tại!", "Cảnh báo");
-                    return;
-                }
-
-                var tg = new TacGia
-                {
-                    MaTacGia = ma,
-                    TacGia1 = txtTenTG.Text.Trim(),
-                    GhiChu = txtGhiChu.Text.Trim()
-                };
-
-                db.TacGia.Add(tg);
-                db.SaveChanges();
-                MessageBox.Show("Thêm tác giả thành công!");
-                LoadData();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi thêm: " + ex.Message);
-            }
+            txtMaTG.Enabled = enabled;
+            txtTenTG.Enabled = enabled;
+            txtGhiChu.Enabled = enabled;
         }
 
-        // ===== SỬA =====
-        private void btnSua_Click(object sender, EventArgs e)
+        // ===== BẬT / TẮT CÁC NÚT CHỨC NĂNG =====
+        private void SetButtonsEnabled(bool enabled)
         {
-            try
-            {
-                if (selectedTacGia == null)
-                {
-                    MessageBox.Show("Vui lòng chọn tác giả cần sửa!");
-                    return;
-                }
-
-                selectedTacGia.TacGia1 = txtTenTG.Text.Trim();
-                selectedTacGia.GhiChu = txtGhiChu.Text.Trim();
-
-                db.Entry(selectedTacGia).State = EntityState.Modified;
-                db.SaveChanges();
-
-                MessageBox.Show("Cập nhật thành công!");
-                LoadData();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi sửa: " + ex.Message);
-            }
+            btnThem.Enabled = enabled;
+            btnSua.Enabled = enabled;
+            btnXoa.Enabled = enabled;
         }
 
-        // ===== XÓA =====
-        private void btnXoa_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                if (selectedTacGia == null)
-                {
-                    MessageBox.Show("Vui lòng chọn tác giả cần xóa!");
-                    return;
-                }
-
-                if (MessageBox.Show("Bạn có chắc muốn xóa tác giả này không?",
-                    "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                {
-                    db.TacGia.Remove(selectedTacGia);
-                    db.SaveChanges();
-
-                    MessageBox.Show("Xóa thành công!");
-                    LoadData();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi xóa: " + ex.Message);
-            }
-        }
-
-        // ===== CLICK DÒNG TRONG DATAGRID =====
+        // ====== CLICK DÒNG TRONG DGV ======
         private void dgvTG_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0 && dgvTG.Rows[e.RowIndex].Cells["MaTacGia"].Value != null)
+            if (e.RowIndex >= 0)
             {
                 string ma = dgvTG.Rows[e.RowIndex].Cells["MaTacGia"].Value.ToString();
                 selectedTacGia = db.TacGia.FirstOrDefault(x => x.MaTacGia == ma);
@@ -182,42 +97,172 @@ namespace DOANNHOM
             }
         }
 
-        // ===== TÌM KIẾM REALTIME =====
-        private void txtTimKiem_TextChanged(object sender, EventArgs e)
+        // ====== NÚT THÊM ======
+        private void btnThem_Click(object sender, EventArgs e)
         {
-            try
-            {
-                string keyword = txtTimKiem.Text.Trim().ToLower();
+            ClearTextBoxes();
+            SetEditingMode(true);
+            currentAction = "add";
+            btnLuu.Enabled = true;
+            txtMaTG.Focus();
 
-                var ketQua = string.IsNullOrWhiteSpace(keyword)
-                    ? danhSachGoc
-                    : danhSachGoc.Where(t =>
-                          (t.MaTacGia != null && t.MaTacGia.ToLower().Contains(keyword)) ||
-                          (t.TacGia1 != null && t.TacGia1.ToLower().Contains(keyword)) ||
-                          (t.GhiChu != null && t.GhiChu.ToLower().Contains(keyword))
-                      ).ToList();
-
-                dgvTG.DataSource = ketQua
-                    .Select(t => new
-                    {
-                        t.MaTacGia,
-                        t.TacGia1,
-                        t.GhiChu
-                    }).ToList();
-
-                dgvTG.Refresh();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi tìm kiếm: " + ex.Message);
-            }
+            // VÔ HIỆU HÓA CÁC NÚT KHÁC
+            SetButtonsEnabled(false);
         }
 
+        // ====== NÚT SỬA ======
+        private void btnSua_Click(object sender, EventArgs e)
+        {
+            if (selectedTacGia == null)
+            {
+                MessageBox.Show("Vui lòng chọn tác giả cần sửa!", "Thông báo");
+                return;
+            }
+
+            SetEditingMode(true);
+            txtMaTG.Enabled = false; // Không cho sửa mã
+            currentAction = "edit";
+            btnLuu.Enabled = true;
+
+            // VÔ HIỆU HÓA CÁC NÚT KHÁC
+            SetButtonsEnabled(false);
+        }
+
+        // ====== NÚT XÓA ======
+        private void btnXoa_Click(object sender, EventArgs e)
+        {
+            if (selectedTacGia == null)
+            {
+                MessageBox.Show("Vui lòng chọn tác giả cần xóa!", "Thông báo");
+                return;
+            }
+
+            SetEditingMode(false);
+            currentAction = "delete";
+            btnLuu.Enabled = true;
+
+            // VÔ HIỆU HÓA CÁC NÚT KHÁC
+            SetButtonsEnabled(false);
+        }
+
+        // ====== TÌM KIẾM ======
+        private void txtTimKiem_TextChanged(object sender, EventArgs e)
+        {
+            string keyword = txtTimKiem.Text.Trim().ToLower();
+
+            var result = db.TacGia
+                .Where(t =>
+                    t.MaTacGia.ToLower().Contains(keyword) ||
+                    t.TacGia1.ToLower().Contains(keyword) ||
+                    (t.GhiChu ?? "").ToLower().Contains(keyword))
+                .Select(t => new
+                {
+                    t.MaTacGia,
+                    TenTacGia = t.TacGia1,
+                    t.GhiChu
+                })
+                .ToList();
+
+            dgvTG.DataSource = result;
+        }
+
+        // ====== TRỞ VỀ ======
         private void btnTroVe_Click(object sender, EventArgs e)
         {
             frmQuanLySach frm = new frmQuanLySach();
             frm.Show();
             Hide();
+        }
+
+        // ====== NÚT LƯU ======
+
+        private void btnLuu_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (currentAction == "add")
+                {
+                    if (string.IsNullOrWhiteSpace(txtMaTG.Text) || string.IsNullOrWhiteSpace(txtTenTG.Text))
+                    {
+                        MessageBox.Show("Vui lòng nhập đầy đủ thông tin!", "Thông báo");
+                        return;
+                    }
+
+                    if (db.TacGia.Any(x => x.MaTacGia == txtMaTG.Text.Trim()))
+                    {
+                        MessageBox.Show("Mã tác giả đã tồn tại!", "Cảnh báo");
+                        return;
+                    }
+
+                    var tg = new TacGia
+                    {
+                        MaTacGia = txtMaTG.Text.Trim(),
+                        TacGia1 = txtTenTG.Text.Trim(),
+                        GhiChu = txtGhiChu.Text.Trim()
+                    };
+
+                    db.TacGia.Add(tg);
+                    db.SaveChanges();
+                    MessageBox.Show("Thêm tác giả thành công!", "Thông báo");
+                }
+                else if (currentAction == "edit")
+                {
+                    if (selectedTacGia == null)
+                    {
+                        MessageBox.Show("Chưa chọn tác giả để sửa!", "Thông báo");
+                        return;
+                    }
+
+                    selectedTacGia.TacGia1 = txtTenTG.Text.Trim();
+                    selectedTacGia.GhiChu = txtGhiChu.Text.Trim();
+                    db.Entry(selectedTacGia).State = EntityState.Modified;
+                    db.SaveChanges();
+                    MessageBox.Show("Cập nhật thành công!", "Thông báo");
+                }
+                else if (currentAction == "delete")
+                {
+                    if (selectedTacGia == null)
+                    {
+                        MessageBox.Show("Chưa chọn tác giả để xóa!", "Thông báo");
+                        return;
+                    }
+
+                    if (MessageBox.Show("Bạn có chắc chắn muốn xóa không?",
+                        "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    {
+                        db.TacGia.Remove(selectedTacGia);
+                        db.SaveChanges();
+                        MessageBox.Show("Xóa thành công!", "Thông báo");
+                    }
+                    else
+                    {
+                        // User chọn No - hủy thao tác và BẬT LẠI CÁC NÚT
+                        currentAction = "";
+                        SetEditingMode(false);
+                        btnLuu.Enabled = false;
+                        SetButtonsEnabled(true); // ← BẬT LẠI CÁC NÚT
+                        return;
+                    }
+                }
+
+                // Làm mới sau khi lưu thành công
+                currentAction = "";
+                LoadData();
+                SetEditingMode(false);
+                btnLuu.Enabled = false;
+
+                // BẬT LẠI CÁC NÚT THÊM/SỬA/XÓA
+                SetButtonsEnabled(true);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi lưu: " + ex.Message, "Lỗi");
+            }
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

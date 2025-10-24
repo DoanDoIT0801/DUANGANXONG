@@ -30,9 +30,9 @@
         {
             this.label3 = new System.Windows.Forms.Label();
             this.txtTimKiem = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
             this.dgvTG = new System.Windows.Forms.DataGridView();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.btnLuu = new System.Windows.Forms.Button();
             this.btnThem = new System.Windows.Forms.Button();
             this.label7 = new System.Windows.Forms.Label();
             this.btnTroVe = new System.Windows.Forms.Button();
@@ -43,6 +43,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.txtMaTG = new System.Windows.Forms.TextBox();
             this.txtTenTG = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTG)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -53,26 +54,17 @@
             this.label3.Location = new System.Drawing.Point(345, 61);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(49, 13);
-            this.label3.TabIndex = 33;
+            this.label3.TabIndex = 38;
             this.label3.Text = "Tìm kiếm";
+            this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // txtTimKiem
             // 
             this.txtTimKiem.Location = new System.Drawing.Point(409, 58);
             this.txtTimKiem.Name = "txtTimKiem";
             this.txtTimKiem.Size = new System.Drawing.Size(128, 20);
-            this.txtTimKiem.TabIndex = 32;
+            this.txtTimKiem.TabIndex = 37;
             this.txtTimKiem.TextChanged += new System.EventHandler(this.txtTimKiem_TextChanged);
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(117, 26);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(109, 31);
-            this.label4.TabIndex = 34;
-            this.label4.Text = "Tác Giả";
             // 
             // dgvTG
             // 
@@ -80,11 +72,12 @@
             this.dgvTG.Location = new System.Drawing.Point(343, 94);
             this.dgvTG.Name = "dgvTG";
             this.dgvTG.Size = new System.Drawing.Size(439, 330);
-            this.dgvTG.TabIndex = 31;
+            this.dgvTG.TabIndex = 36;
             this.dgvTG.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvTG_CellClick);
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.btnLuu);
             this.groupBox1.Controls.Add(this.btnThem);
             this.groupBox1.Controls.Add(this.label7);
             this.groupBox1.Controls.Add(this.btnTroVe);
@@ -98,9 +91,19 @@
             this.groupBox1.Location = new System.Drawing.Point(19, 84);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(305, 330);
-            this.groupBox1.TabIndex = 30;
+            this.groupBox1.TabIndex = 35;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Thông tin loại sách";
+            // 
+            // btnLuu
+            // 
+            this.btnLuu.Location = new System.Drawing.Point(162, 213);
+            this.btnLuu.Name = "btnLuu";
+            this.btnLuu.Size = new System.Drawing.Size(98, 23);
+            this.btnLuu.TabIndex = 35;
+            this.btnLuu.Text = "Lưu";
+            this.btnLuu.UseVisualStyleBackColor = true;
+            this.btnLuu.Click += new System.EventHandler(this.btnLuu_Click);
             // 
             // btnThem
             // 
@@ -123,9 +126,9 @@
             // 
             // btnTroVe
             // 
-            this.btnTroVe.Location = new System.Drawing.Point(162, 213);
+            this.btnTroVe.Location = new System.Drawing.Point(79, 266);
             this.btnTroVe.Name = "btnTroVe";
-            this.btnTroVe.Size = new System.Drawing.Size(98, 23);
+            this.btnTroVe.Size = new System.Drawing.Size(134, 23);
             this.btnTroVe.TabIndex = 12;
             this.btnTroVe.Text = "Trở về";
             this.btnTroVe.UseVisualStyleBackColor = true;
@@ -190,6 +193,16 @@
             this.txtTenTG.Size = new System.Drawing.Size(156, 20);
             this.txtTenTG.TabIndex = 6;
             // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.Location = new System.Drawing.Point(78, 27);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(109, 31);
+            this.label4.TabIndex = 39;
+            this.label4.Text = "Tác Giả";
+            // 
             // frmTacGia
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -197,9 +210,9 @@
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.txtTimKiem);
-            this.Controls.Add(this.label4);
             this.Controls.Add(this.dgvTG);
             this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.label4);
             this.Name = "frmTacGia";
             this.Text = "frmTacGia";
             this.Load += new System.EventHandler(this.frmTacGia_Load);
@@ -215,9 +228,9 @@
 
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox txtTimKiem;
-        private System.Windows.Forms.Label label4;
         private System.Windows.Forms.DataGridView dgvTG;
         private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Button btnLuu;
         private System.Windows.Forms.Button btnThem;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Button btnTroVe;
@@ -228,5 +241,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtMaTG;
         private System.Windows.Forms.TextBox txtTenTG;
+        private System.Windows.Forms.Label label4;
     }
 }
