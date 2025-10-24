@@ -9,8 +9,8 @@ namespace DOANNHOM
 {
     public partial class frmQuanLySach : Form
     {
-        private QuanLyThuVien db;
-        private List<dynamic> danhSachSachGoc;
+        private QuanLyThuVien db; 
+        private List<object> danhSachSachGoc;
 
         public frmQuanLySach()
         {
@@ -44,7 +44,7 @@ namespace DOANNHOM
                         GiaBan = s.GiaBan,
                         SoLuong = s.SoLuong
                     })
-                    .ToList<dynamic>();
+                    .ToList<object>(); // Thay đổi ở đây
 
                 danhSachSachGoc = sachList;
                 HienThiDanhSach(sachList);
@@ -89,7 +89,7 @@ namespace DOANNHOM
             if (danhSachSachGoc == null || danhSachSachGoc.Count == 0) return;
 
             string keyword = txtTK.Text.Trim().ToLower();
-            List<dynamic> ketQua;
+            List<object> ketQua;
 
             if (string.IsNullOrWhiteSpace(keyword))
             {
@@ -100,31 +100,49 @@ namespace DOANNHOM
                 if (rbTenSach.Checked)
                 {
                     ketQua = danhSachSachGoc.Where(s =>
-                        ((string)s.TenSach)?.ToLower().Contains(keyword) == true).ToList();
+                    {
+                        var obj = s.GetType().GetProperty("TenSach")?.GetValue(s, null);
+                        return obj?.ToString().ToLower().Contains(keyword) == true;
+                    }).ToList();
                 }
                 else if (rbLoaiSach.Checked)
                 {
                     ketQua = danhSachSachGoc.Where(s =>
-                        ((string)s.TenLoaiSach)?.ToLower().Contains(keyword) == true).ToList();
+                    {
+                        var obj = s.GetType().GetProperty("TenLoaiSach")?.GetValue(s, null);
+                        return obj?.ToString().ToLower().Contains(keyword) == true;
+                    }).ToList();
                 }
                 else if (rbTacGia.Checked)
                 {
                     ketQua = danhSachSachGoc.Where(s =>
-                        ((string)s.TacGia)?.ToLower().Contains(keyword) == true).ToList();
+                    {
+                        var obj = s.GetType().GetProperty("TacGia")?.GetValue(s, null);
+                        return obj?.ToString().ToLower().Contains(keyword) == true;
+                    }).ToList();
                 }
                 else if (rbNXB.Checked)
                 {
                     ketQua = danhSachSachGoc.Where(s =>
-                        ((string)s.NhaXuatBan)?.ToLower().Contains(keyword) == true).ToList();
+                    {
+                        var obj = s.GetType().GetProperty("NhaXuatBan")?.GetValue(s, null);
+                        return obj?.ToString().ToLower().Contains(keyword) == true;
+                    }).ToList();
                 }
                 else
                 {
                     ketQua = danhSachSachGoc.Where(s =>
-                        ((string)s.TenSach)?.ToLower().Contains(keyword) == true ||
-                        ((string)s.TenLoaiSach)?.ToLower().Contains(keyword) == true ||
-                        ((string)s.TacGia)?.ToLower().Contains(keyword) == true ||
-                        ((string)s.NhaXuatBan)?.ToLower().Contains(keyword) == true
-                    ).ToList();
+                    {
+                        var tenSach = s.GetType().GetProperty("TenSach")?.GetValue(s, null)?.ToString().ToLower();
+                        var loaiSach = s.GetType().GetProperty("TenLoaiSach")?.GetValue(s, null)?.ToString().ToLower();
+                        var tacGia = s.GetType().GetProperty("TacGia")?.GetValue(s, null)?.ToString().ToLower();
+                        var nxb = s.GetType().GetProperty("NhaXuatBan")?.GetValue(s, null)?.ToString().ToLower();
+
+                        return (tenSach?.Contains(keyword) == true ||
+                                loaiSach?.Contains(keyword) == true ||
+                                tacGia?.Contains(keyword) == true ||
+                                nxb?.Contains(keyword) == true);
+                    }).ToList();
                 }
             }
 
