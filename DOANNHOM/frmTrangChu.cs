@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DOANNHOM
@@ -17,32 +11,45 @@ namespace DOANNHOM
             InitializeComponent();
         }
 
+        private void frmTrangChu_Load(object sender, EventArgs e)
+        {
+            this.IsMdiContainer = true;
+            this.KeyPreview = true;
+        }
+
+        // ===== Mở hoặc kích hoạt form con =====
         private void kiemTraKichHoatForm(Form form)
         {
             var kiemTraTonTai = this.MdiChildren.FirstOrDefault(s => s.Name == form.Name);
             if (kiemTraTonTai != null)
-            {
                 kiemTraTonTai.Activate();
-            }
             else
             {
                 form.MdiParent = this;
-                form.Show();
                 form.WindowState = FormWindowState.Maximized;
+                form.Show();
             }
         }
 
-        private void frmTrangChu_Load(object sender, EventArgs e)
+        // ===== Thông tin tài khoản =====
+        private void thôngTinTàiKhoảnToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // this.KeyPreview = true; // nếu muốn xử lý KeyDown ở cấp form
-            // this.IsMdiContainer = true; // nếu đây là MDI Parent
+            kiemTraKichHoatForm(new frmThongTinTaiKhoan());
         }
 
-        private void tàiKhoảnToolStripMenuItem_Click(object sender, EventArgs e)
+        // ===== Đăng xuất =====
+        private void đăngXuấtToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // mở “Thông tin tài khoản” nếu có
+            if (MessageBox.Show("Bạn có muốn đăng xuất?", "Đăng xuất",
+                                MessageBoxButtons.YesNo, MessageBoxIcon.Question)
+                == DialogResult.Yes)
+            {
+                foreach (var child in this.MdiChildren) child.Close();
+                this.Close();
+            }
         }
 
+        // ===== Các menu khác =====
         private void quảnLýSáchToolStripMenuItem_Click(object sender, EventArgs e)
         {
             kiemTraKichHoatForm(new frmQuanLySach());
@@ -58,49 +65,19 @@ namespace DOANNHOM
             kiemTraKichHoatForm(new frmMuonTra());
         }
 
-        private void quánLýNhânViênToolStripMenuItem_Click(object sender, EventArgs e)
+        private void quảnLýNhânViênToolStripMenuItem_Click(object sender, EventArgs e)
         {
             kiemTraKichHoatForm(new frmQLNhanVien());
         }
 
         private void báoCáoThốngKêToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            kiemTraKichHoatForm(new frmBaoCaoThongKe1());
+            kiemTraKichHoatForm(new frmBaoCaoThongKe());
         }
 
-        // ====== ĐĂNG XUẤT ======
-        private void DangXuat()
+        private void thôngTinToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var confirm = MessageBox.Show("Bạn có muốn đăng xuất?",
-                                          "Đăng xuất", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (confirm != DialogResult.Yes) return;
-
-            // Đóng tất cả MDI con rồi đóng Trang Chủ
-            foreach (var child in this.MdiChildren) child.Close();
-
-            // Chỉ cần Close(); frmLogin sẽ Show lại nhờ FormClosed handler ở frmLogin
-            this.Close();
-        }
-
-        private void đăngXuấtToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            DangXuat();
-        }
-
-        // Bắt phím ESC để đăng xuất nhanh
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
-        {
-            if (keyData == Keys.Escape)
-            {
-                DangXuat();
-                return true;
-            }
-            return base.ProcessCmdKey(ref msg, keyData);
-        }
-
-        private void thôngTinTàiKhoảnToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            // xử lý nếu có
+            kiemTraKichHoatForm(new frmThongTinTaiKhoan());
         }
     }
 }

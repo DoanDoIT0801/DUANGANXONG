@@ -1,19 +1,35 @@
-﻿using System;
+﻿using DOANNHOM.data;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.Entity;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Data.Entity;
-using DOANNHOM.data;
 namespace DOANNHOM
 {
     public partial class frmLogin : Form
     {
         private readonly QuanLyThuVien ql = new QuanLyThuVien();
+
+        // ====== Session đăng nhập hiện tại ======
+        public static string CurrentMaNhanVien;
+        public static string CurrentMaSinhVien;
+        public static string CurrentTenDangNhap;
+        public static string CurrentLoaiTaiKhoan; // "NhanVien" | "SinhVien"
+
+        public static void ClearSession()
+        {
+            CurrentMaNhanVien = null;
+            CurrentMaSinhVien = null;
+            CurrentTenDangNhap = null;
+            CurrentLoaiTaiKhoan = null;
+        }
+
+        private bool _uiReady = false;
 
         public frmLogin()
         {
@@ -22,89 +38,140 @@ namespace DOANNHOM
 
         private void frmLogin_Load(object sender, EventArgs e)
         {
+            // Mỗi lần quay lại màn Login thì reset phiên cũ
+            ClearSession();
+
+            // Phím tắt enter / esc
             this.AcceptButton = btnDangNhap;
-            // Ẩn mật khẩu + phím tắt
+            this.CancelButton = btnThoat;
+
+            // Che mật khẩu mặc định
             txtMatKhau.UseSystemPasswordChar = true;
-            this.AcceptButton = btnDangNhap; // Enter = Đăng nhập
-            this.CancelButton = btnThoat;    // Esc   = Thoát
 
-            // ===== TabIndex theo CONTAINER ngoài =====
-            pnlUser.TabIndex = 0; // Panel Tên đăng nhập
-            pnlPass.TabIndex = 1; // Panel Mật khẩu
-            rbNhanVien.TabIndex = 2; // Điểm vào nhóm radio
-            btnDangNhap.TabIndex = 3;
-            btnThoat.TabIndex = 4;
+            // Đảm bảo sự kiện radio có gắn
+            if (rbNhanVien != null) rbNhanVien.CheckedChanged += RbNhanVien_CheckedChanged;
+            if (rbSinhVien != null) rbSinhVien.CheckedChanged += RbSinhVien_CheckedChanged;
 
-            // ===== Bên trong từng panel =====
-            txtDangNhap.TabIndex = 0;       // trong pnlUser
-            txtMatKhau.TabIndex = 0;       // trong pnlPass
-            CkHienThiMk.TabIndex = 1;       // "Xem mật khẩu" sau ô mật khẩu
+            rbNhanVien.Checked = true; // mặc định
 
-            // ===== Nhóm RadioButton =====
-            rbNhanVien.TabStop = true;      // chuẩn: TAB dừng 1 lần ở nhóm
-            rbSinhVien.TabStop = false;     // chuyển lựa chọn bằng phím ←/→
-            rbNhanVien.Checked = true;      // mặc định
+            _uiReady = true;
         }
-
-      
 
         private void CkHienThiMk_CheckedChanged_1(object sender, EventArgs e)
         {
             txtMatKhau.UseSystemPasswordChar = !CkHienThiMk.Checked;
-            txtMatKhau.SelectionStart = txtMatKhau.TextLength; // tuỳ chọn
+            txtMatKhau.SelectionStart = txtMatKhau.TextLength;
         }
 
+        private void RbNhanVien_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!_uiReady || !rbNhanVien.Checked) return;
+
+            ResetInputs();
+            MessageBox.Show("Mời bạn nhập thông tin Nhân viên.",
+                            "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void RbSinhVien_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!_uiReady || !rbSinhVien.Checked) return;
+
+            ResetInputs();
+            MessageBox.Show("Mời bạn nhập thông tin Sinh viên.",
+                            "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void ResetInputs()
+        {
+            txtDangNhap.Clear();
+            txtMatKhau.Clear();
+            txtMatKhau.UseSystemPasswordChar = !(CkHienThiMk?.Checked ?? false);
+            txtDangNhap.Focus();
+        }
+
+        // ===== NÚT ĐĂNG NHẬP =====
         private void btnDangNhap_Click_1(object sender, EventArgs e)
         {
-            // Chỉ xử lý khi đăng nhập theo Nhân viên
-            if (rbNhanVien != null && !rbNhanVien.Checked)
-            {
-                MessageBox.Show("Vui lòng chọn 'Nhân Viên' để đăng nhập.",
-                                "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
+            string tenDangNhap = (txtDangNhap.Text ?? "").Trim();
+            string matKhau = (txtMatKhau.Text ?? "").Trim();
 
-            string maHoacTen = txtDangNhap.Text.Trim(); // dùng như MaNhanVien
-            string matKhau = txtMatKhau.Text;
-
-            if (string.IsNullOrWhiteSpace(maHoacTen) || string.IsNullOrWhiteSpace(matKhau))
+            if (string.IsNullOrWhiteSpace(tenDangNhap) || string.IsNullOrWhiteSpace(matKhau))
             {
-                MessageBox.Show("Vui lòng nhập đầy đủ Mã nhân viên và Mật khẩu.",
+                MessageBox.Show("Vui lòng nhập đầy đủ Tên đăng nhập và Mật khẩu.",
                                 "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             try
             {
-                var nv = ql.NhanVien.FirstOrDefault(x =>
-                            x.MaNhanVien == maHoacTen && x.MatKhau == matKhau);
-                // Nếu muốn dùng TenNhanVien:
-                // var nv = ql.NhanVien.FirstOrDefault(x =>
-                //             x.TenNhanVien == maHoacTen && x.MatKhau == matKhau);
-
-                if (nv != null)
+                // ========== ĐĂNG NHẬP NHÂN VIÊN ==========
+                if (rbNhanVien != null && rbNhanVien.Checked)
                 {
-                    MessageBox.Show($"Xin chào {nv.TenNhanVien}!",
+                    var nv = ql.NhanVien.FirstOrDefault(x =>
+                                    x.MaNhanVien == tenDangNhap &&
+                                    x.MatKhau == matKhau);
+
+                    if (nv == null)
+                    {
+                        MessageBox.Show("Sai mã nhân viên hoặc mật khẩu.",
+                                        "Đăng nhập thất bại", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    CurrentLoaiTaiKhoan = "NhanVien";
+                    CurrentMaNhanVien = nv.MaNhanVien;
+                    CurrentMaSinhVien = null;
+                    CurrentTenDangNhap = nv.TenNhanVien;
+
+                    MessageBox.Show($"Xin chào nhân viên {nv.TenNhanVien}!",
                                     "Đăng nhập thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                    // Ẩn Login, mở Trang Chủ (non-modal). Khi Trang Chủ đóng -> Show lại Login
-                    this.Hide();
-                    var home = new frmTrangChu();
-                    home.FormClosed += (s, args) =>
-                    {
-                        txtDangNhap.Clear();
-                        txtMatKhau.Clear();
-                        this.Show();
-                        this.Activate();
-                        txtDangNhap.Focus();
-                    };
-                    home.Show(); // KHÔNG dùng ShowDialog()
+                    MoTrangChu();
+                    return;
                 }
-                else
+
+                // ========== ĐĂNG NHẬP SINH VIÊN ==========
+                if (rbSinhVien != null && rbSinhVien.Checked)
                 {
-                    MessageBox.Show("Sai mã nhân viên hoặc mật khẩu.",
-                                    "Đăng nhập thất bại", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // Lấy sinh viên theo MaSV
+                    var sv = ql.SinhVien.FirstOrDefault(x => x.MaSV == tenDangNhap);
+
+                    if (sv == null)
+                    {
+                        MessageBox.Show("Không tìm thấy mã sinh viên.",
+                                        "Đăng nhập thất bại", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // Mật khẩu hiện tại của sinh viên:
+                    // Nếu sv.MatKhau có dữ liệu -> dùng sv.MatKhau
+                    // Nếu sv.MatKhau trống -> mặc định mật khẩu = MaSV
+                    string matKhauDangDung =
+                        string.IsNullOrWhiteSpace(sv.MatKhau)
+                            ? sv.MaSV
+                            : sv.MatKhau;
+
+                    if (!string.Equals(matKhau, matKhauDangDung, StringComparison.Ordinal))
+                    {
+                        MessageBox.Show("Sai mật khẩu.",
+                                        "Sai mật khẩu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    CurrentLoaiTaiKhoan = "SinhVien";
+                    CurrentMaSinhVien = sv.MaSV;
+                    CurrentMaNhanVien = null;
+                    CurrentTenDangNhap = string.IsNullOrWhiteSpace(sv.TenSV) ? sv.MaSV : sv.TenSV;
+
+                    MessageBox.Show($"Xin chào sinh viên {CurrentTenDangNhap}!",
+                                    "Đăng nhập thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    MoTrangChu();
+                    return;
                 }
+
+                MessageBox.Show("Vui lòng chọn loại tài khoản để đăng nhập.",
+                                "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -113,15 +180,32 @@ namespace DOANNHOM
             }
         }
 
+        private void MoTrangChu()
+        {
+            this.Hide();
+
+            var home = new frmTrangChu();
+
+            // Khi frmTrangChu đóng (tức user bấm Đăng xuất),
+            // ta clear session và show lại frmLogin rỗng.
+            home.FormClosed += (s, args) =>
+            {
+                ClearSession();
+                ResetInputs();
+                this.Show();
+                this.Activate();
+                txtDangNhap.Focus();
+            };
+
+            home.Show();
+        }
+
         private void btnThoat_Click(object sender, EventArgs e)
         {
             var confirm = MessageBox.Show("Bạn có chắc muốn thoát chương trình?",
                                           "Thoát", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (confirm == DialogResult.Yes)
-            {
                 Application.Exit();
-            }
         }
     }
-    }
-
+}
