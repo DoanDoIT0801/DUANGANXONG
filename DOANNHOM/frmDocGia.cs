@@ -43,6 +43,7 @@ namespace DOANNHOM
             txtNganhHoc.Enabled = isEnabled;
             txtKhoaHoc.Enabled = isEnabled;
             txtSDT.Enabled = isEnabled;
+            txtMatKhau.Enabled = isEnabled;
         }
 
         private void ResetButtonState()
@@ -61,6 +62,7 @@ namespace DOANNHOM
             txtNganhHoc.Clear();
             txtKhoaHoc.Clear();
             txtSDT.Clear();
+            txtMatKhau.Clear();
         }
 
         // ------------------ LOAD DỮ LIỆU ------------------
@@ -73,7 +75,8 @@ namespace DOANNHOM
                     x.TenSV,
                     x.NganhHoc,
                     x.KhoaHoc,
-                    x.SoDienThoai
+                    x.SoDienThoai,
+                    x.MatKhau
                 })
                 .ToList();
 
@@ -121,13 +124,20 @@ namespace DOANNHOM
                     return;
                 }
 
+                if (string.IsNullOrWhiteSpace(txtMatKhau.Text))
+                {
+                    MessageBox.Show("Vui lòng nhập mật khẩu!");
+                    return;
+                }
+
                 var dg = new SinhVien
                 {
                     MaSV = txtMaSV.Text.Trim(),
                     TenSV = txtTenSV.Text.Trim(),
                     NganhHoc = txtNganhHoc.Text.Trim(),
                     KhoaHoc = txtKhoaHoc.Text.Trim(),
-                    SoDienThoai = soDienThoai
+                    SoDienThoai = soDienThoai,
+                    MatKhau = txtMatKhau.Text.Trim()
                 };
 
                 db.SinhVien.Add(dg);
@@ -196,6 +206,11 @@ namespace DOANNHOM
                     {
                         MessageBox.Show("Số điện thoại không hợp lệ!");
                         return;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(txtMatKhau.Text))
+                    {
+                        dg.MatKhau = txtMatKhau.Text.Trim();
                     }
 
                     db.SaveChanges();
@@ -271,6 +286,7 @@ namespace DOANNHOM
                 txtNganhHoc.Text = row.Cells["NganhHoc"].Value?.ToString();
                 txtKhoaHoc.Text = row.Cells["KhoaHoc"].Value?.ToString();
                 txtSDT.Text = row.Cells["SoDienThoai"].Value?.ToString();
+                txtMatKhau.Text = row.Cells["MatKhau"].Value?.ToString();
             }
         }
 
@@ -302,7 +318,8 @@ namespace DOANNHOM
                 x.TenSV,
                 x.NganhHoc,
                 x.KhoaHoc,
-                x.SoDienThoai
+                x.SoDienThoai,
+                x.MatKhau
             }).ToList();
 
             dgvDocGia.DataSource = list;
@@ -328,7 +345,6 @@ namespace DOANNHOM
             ClearInput();
             SetControlState(false);
             ResetButtonState();
-            
         }
         //done
     }

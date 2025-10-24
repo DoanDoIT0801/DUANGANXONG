@@ -40,6 +40,7 @@
             this.dgvDocGia = new System.Windows.Forms.DataGridView();
             this.panel2 = new System.Windows.Forms.Panel();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.btnHuy = new System.Windows.Forms.Button();
             this.txtSDT = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.btnXoa = new System.Windows.Forms.Button();
@@ -54,7 +55,8 @@
             this.txtMaSV = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.btnThoat = new System.Windows.Forms.Button();
-            this.btnHuy = new System.Windows.Forms.Button();
+            this.txtMatKhau = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.panel4.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -174,6 +176,8 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.txtMatKhau);
+            this.groupBox1.Controls.Add(this.label7);
             this.groupBox1.Controls.Add(this.btnHuy);
             this.groupBox1.Controls.Add(this.txtSDT);
             this.groupBox1.Controls.Add(this.label6);
@@ -195,6 +199,16 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Thông Tin Đọc Giả";
             // 
+            // btnHuy
+            // 
+            this.btnHuy.Location = new System.Drawing.Point(298, 271);
+            this.btnHuy.Name = "btnHuy";
+            this.btnHuy.Size = new System.Drawing.Size(74, 35);
+            this.btnHuy.TabIndex = 23;
+            this.btnHuy.Text = "Hủy Bỏ";
+            this.btnHuy.UseVisualStyleBackColor = true;
+            this.btnHuy.Click += new System.EventHandler(this.btnHuy_Click);
+            // 
             // txtSDT
             // 
             this.txtSDT.Location = new System.Drawing.Point(176, 200);
@@ -213,7 +227,7 @@
             // 
             // btnXoa
             // 
-            this.btnXoa.Location = new System.Drawing.Point(202, 252);
+            this.btnXoa.Location = new System.Drawing.Point(202, 271);
             this.btnXoa.Name = "btnXoa";
             this.btnXoa.Size = new System.Drawing.Size(74, 35);
             this.btnXoa.TabIndex = 11;
@@ -223,7 +237,7 @@
             // 
             // btnSua
             // 
-            this.btnSua.Location = new System.Drawing.Point(106, 252);
+            this.btnSua.Location = new System.Drawing.Point(106, 271);
             this.btnSua.Name = "btnSua";
             this.btnSua.Size = new System.Drawing.Size(74, 35);
             this.btnSua.TabIndex = 10;
@@ -233,7 +247,7 @@
             // 
             // btnThem
             // 
-            this.btnThem.Location = new System.Drawing.Point(13, 252);
+            this.btnThem.Location = new System.Drawing.Point(13, 271);
             this.btnThem.Name = "btnThem";
             this.btnThem.Size = new System.Drawing.Size(74, 35);
             this.btnThem.TabIndex = 9;
@@ -315,15 +329,21 @@
             this.btnThoat.UseVisualStyleBackColor = true;
             this.btnThoat.Click += new System.EventHandler(this.btnThoat_Click);
             // 
-            // btnHuy
+            // txtMatKhau
             // 
-            this.btnHuy.Location = new System.Drawing.Point(298, 252);
-            this.btnHuy.Name = "btnHuy";
-            this.btnHuy.Size = new System.Drawing.Size(74, 35);
-            this.btnHuy.TabIndex = 23;
-            this.btnHuy.Text = "Hủy Bỏ";
-            this.btnHuy.UseVisualStyleBackColor = true;
-            this.btnHuy.Click += new System.EventHandler(this.btnHuy_Click);
+            this.txtMatKhau.Location = new System.Drawing.Point(176, 243);
+            this.txtMatKhau.Name = "txtMatKhau";
+            this.txtMatKhau.Size = new System.Drawing.Size(158, 22);
+            this.txtMatKhau.TabIndex = 27;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(62, 246);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(62, 16);
+            this.label7.TabIndex = 26;
+            this.label7.Text = "Mật Khẩu";
             // 
             // frmDocGia
             // 
@@ -376,5 +396,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btnThoat;
         private System.Windows.Forms.Button btnHuy;
+        private System.Windows.Forms.TextBox txtMatKhau;
+        private System.Windows.Forms.Label label7;
     }
 }
