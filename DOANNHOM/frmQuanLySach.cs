@@ -10,7 +10,8 @@ namespace DOANNHOM
     public partial class frmQuanLySach : Form
     {
         private QuanLyThuVien db;
-        private List<SachViewModel> danhSachSachGoc;
+        private List<dynamic> danhSachSachGoc;
+
         public frmQuanLySach()
         {
             InitializeComponent();
@@ -23,6 +24,7 @@ namespace DOANNHOM
             rbTenSach.Checked = true;
             txtTK.TextChanged += txtTK_TextChanged;
         }
+
         private void LoadData()
         {
             try
@@ -31,7 +33,7 @@ namespace DOANNHOM
                     .Include(s => s.LoaiSach)
                     .Include(s => s.NhaXuatBan)
                     .Include(s => s.TacGia)
-                    .Select(s => new SachViewModel
+                    .Select(s => new
                     {
                         MaSach = s.MaSach,
                         TenSach = s.TenSach,
@@ -42,7 +44,7 @@ namespace DOANNHOM
                         GiaBan = s.GiaBan,
                         SoLuong = s.SoLuong
                     })
-                    .ToList();
+                    .ToList<dynamic>();
 
                 danhSachSachGoc = sachList;
                 HienThiDanhSach(sachList);
@@ -54,20 +56,17 @@ namespace DOANNHOM
             }
         }
 
-        // ================== HIỂN THỊ DỮ LIỆU ==================
-        private void HienThiDanhSach(List<SachViewModel> danhSach)
+        private void HienThiDanhSach(List<dynamic> danhSach)
         {
             dgvDSTK.DataSource = null;
             dgvDSTK.DataSource = danhSach;
         }
 
-        // ================== TÙY CHỈNH DATAGRID ==================
         private void CustomizeDataGridView()
         {
             if (dgvDSTK.Columns.Count == 0) return;
 
             dgvDSTK.Columns["MaSach"].Visible = false;
-
             dgvDSTK.Columns["TenSach"].HeaderText = "Tên Sách";
             dgvDSTK.Columns["TenLoaiSach"].HeaderText = "Loại Sách";
             dgvDSTK.Columns["NhaXuatBan"].HeaderText = "Nhà Xuất Bản";
@@ -85,13 +84,12 @@ namespace DOANNHOM
             dgvDSTK.AllowUserToAddRows = false;
         }
 
-        // ================== TÌM KIẾM ==================
         private void TimKiem()
         {
             if (danhSachSachGoc == null || danhSachSachGoc.Count == 0) return;
 
             string keyword = txtTK.Text.Trim().ToLower();
-            List<SachViewModel> ketQua;
+            List<dynamic> ketQua;
 
             if (string.IsNullOrWhiteSpace(keyword))
             {
@@ -101,36 +99,37 @@ namespace DOANNHOM
             {
                 if (rbTenSach.Checked)
                 {
-                    ketQua = danhSachSachGoc.Where(s => s.TenSach?.ToLower().Contains(keyword) == true).ToList();
+                    ketQua = danhSachSachGoc.Where(s =>
+                        ((string)s.TenSach)?.ToLower().Contains(keyword) == true).ToList();
                 }
                 else if (rbLoaiSach.Checked)
                 {
-                    ketQua = danhSachSachGoc.Where(s => s.TenLoaiSach?.ToLower().Contains(keyword) == true).ToList();
+                    ketQua = danhSachSachGoc.Where(s =>
+                        ((string)s.TenLoaiSach)?.ToLower().Contains(keyword) == true).ToList();
                 }
                 else if (rbTacGia.Checked)
                 {
-                    ketQua = danhSachSachGoc.Where(s => s.TacGia?.ToLower().Contains(keyword) == true).ToList();
+                    ketQua = danhSachSachGoc.Where(s =>
+                        ((string)s.TacGia)?.ToLower().Contains(keyword) == true).ToList();
                 }
                 else if (rbNXB.Checked)
                 {
-                    ketQua = danhSachSachGoc.Where(s => s.NhaXuatBan?.ToLower().Contains(keyword) == true).ToList();
+                    ketQua = danhSachSachGoc.Where(s =>
+                        ((string)s.NhaXuatBan)?.ToLower().Contains(keyword) == true).ToList();
                 }
                 else
                 {
-                    // Tìm theo tất cả các cột
                     ketQua = danhSachSachGoc.Where(s =>
-                        s.TenSach?.ToLower().Contains(keyword) == true ||
-                        s.TenLoaiSach?.ToLower().Contains(keyword) == true ||
-                        s.TacGia?.ToLower().Contains(keyword) == true ||
-                        s.NhaXuatBan?.ToLower().Contains(keyword) == true
+                        ((string)s.TenSach)?.ToLower().Contains(keyword) == true ||
+                        ((string)s.TenLoaiSach)?.ToLower().Contains(keyword) == true ||
+                        ((string)s.TacGia)?.ToLower().Contains(keyword) == true ||
+                        ((string)s.NhaXuatBan)?.ToLower().Contains(keyword) == true
                     ).ToList();
                 }
             }
 
             HienThiDanhSach(ketQua);
         }
-
-        // ================== SỰ KIỆN ==================
 
         private void rbTenSach_CheckedChanged(object sender, EventArgs e)
         {
@@ -152,7 +151,6 @@ namespace DOANNHOM
             if (rbNXB.Checked) TimKiem();
         }
 
-        // ================== MENU & CHUYỂN FORM ==================
         private void trangChủToolStripMenuItem_Click(object sender, EventArgs e)
         {
             frmDocGia frm = new frmDocGia();
@@ -167,10 +165,8 @@ namespace DOANNHOM
             Hide();
         }
 
-  
         private void btnLoaiSach_Click_1(object sender, EventArgs e)
         {
-
             frmLoaiSach frm = new frmLoaiSach();
             frm.Show();
             Hide();
@@ -208,16 +204,5 @@ namespace DOANNHOM
             frm.Show();
             Hide();
         }
-    }
-    public class SachViewModel
-    {
-        public string MaSach { get; set; }
-        public string TenSach { get; set; }
-        public string TenLoaiSach { get; set; }
-        public string NhaXuatBan { get; set; }
-        public string TacGia { get; set; }
-        public int SoTrang { get; set; }
-        public int GiaBan { get; set; }
-        public int SoLuong { get; set; }
     }
 }
